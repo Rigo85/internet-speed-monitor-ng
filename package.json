@@ -1,38 +1,42 @@
 {
-  "name": "internet-speed-monitor-ng",
-  "version": "0.0.0",
-  "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test"
-  },
-  "private": true,
-  "dependencies": {
-    "@angular/animations": "^18.0.0",
-    "@angular/common": "^18.0.0",
-    "@angular/compiler": "^18.0.0",
-    "@angular/core": "^18.0.0",
-    "@angular/forms": "^18.0.0",
-    "@angular/platform-browser": "^18.0.0",
-    "@angular/platform-browser-dynamic": "^18.0.0",
-    "@angular/router": "^18.0.0",
-    "rxjs": "~7.8.0",
-    "tslib": "^2.3.0",
-    "zone.js": "~0.14.3"
-  },
-  "devDependencies": {
-    "@angular-devkit/build-angular": "^18.0.6",
-    "@angular/cli": "^18.0.6",
-    "@angular/compiler-cli": "^18.0.0",
-    "@types/jasmine": "~5.1.0",
-    "jasmine-core": "~5.1.0",
-    "karma": "~6.4.0",
-    "karma-chrome-launcher": "~3.2.0",
-    "karma-coverage": "~2.2.0",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.4.2"
-  }
+	"name": "internet-speed-monitor-ng",
+	"version": "1.0.0",
+	"scripts": {
+		"ng": "ng",
+		"start": "ng build --base-href ./ && npm run build-app-ts && electron .",
+		"build": "ng build",
+		"build-app-ts": "tsc -p electron-app-tsconfig.json",
+		"watch": "ng build --watch --configuration development",
+		"test": "ng test"
+	},
+	"main": "dist-electron-app/electron-app.js",
+	"private": true,
+	"dependencies": {
+		"@angular/animations": "^18.0.0",
+		"@angular/common": "^18.0.0",
+		"@angular/compiler": "^18.0.0",
+		"@angular/core": "^18.0.0",
+		"@angular/forms": "^18.0.0",
+		"@angular/platform-browser": "^18.0.0",
+		"@angular/platform-browser-dynamic": "^18.0.0",
+		"@angular/router": "^18.0.0",
+		"rxjs": "~7.8.0",
+		"tslib": "^2.3.0",
+		"url": "^0.11.4",
+		"zone.js": "~0.14.3"
+	},
+	"devDependencies": {
+		"@angular-devkit/build-angular": "^18.0.6",
+		"@angular/cli": "^18.0.6",
+		"@angular/compiler-cli": "^18.0.0",
+		"@types/jasmine": "~5.1.0",
+		"electron": "^32.0.1",
+		"jasmine-core": "~5.1.0",
+		"karma": "~6.4.0",
+		"karma-chrome-launcher": "~3.2.0",
+		"karma-coverage": "~2.2.0",
+		"karma-jasmine": "~5.1.0",
+		"karma-jasmine-html-reporter": "~2.1.0",
+		"typescript": "~5.4.2"
+	}
 }
