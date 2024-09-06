@@ -1,22 +1,22 @@
 <div class="container d-flex flex-column full-height">
 	<div class="row justify-content-center row-space drag-region">
 		<div class="col-auto">
-			<label id="label_time" class="">5:41:01 PM</label>
+			<label id="label_time" class="">{{ time }}</label>
 		</div>
 	</div>
 	<div class="row text-center row-space drag-region">
 		<div class="col-6 d-flex-center">
-			<label id="label_download" class="me-2">584.94</label>
+			<label id="label_download" class="me-2">{{ downloadSpeed }}</label>
 			<i class="large-icon material-icons outline-icon">file_download</i>
 		</div>
 		<div class="col-6 d-flex-center">
-			<label id="label_upload" class="me-2">54.60</label>
+			<label id="label_upload" class="me-2">{{ uploadSpeed }}</label>
 			<i class="large-icon material-icons outline-icon">file_upload</i>
 		</div>
 	</div>
 	<div class="row justify-content-between text-center row-space">
 		<div class="col-4 d-flex-center">
-			<button class="btn btn-outline-secondary btn-round">
+			<button class="btn btn-outline-secondary btn-round" (click)="onHistory()">
 				<i class="material-icons">history</i>
 			</button>
 		</div>
@@ -26,7 +26,7 @@
 			</button>
 		</div>
 		<div class="col-4 d-flex-center">
-			<button class="btn btn-outline-secondary btn-round">
+			<button class="btn btn-outline-secondary btn-round" (click)="onClose()">
 				<i class="material-icons">close</i>
 			</button>
 		</div>

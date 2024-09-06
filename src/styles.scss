@@ -1,10 +1,8 @@
 @import "bootstrap/scss/bootstrap";
-
-html, body {
-	background-color: transparent !important;
-}
+//@import "datatables.net-bs5/css/dataTables.bootstrap5.min.css";
 
 body {
+	background-color: transparent !important;
 	border: solid;
 	overflow: hidden;
 }

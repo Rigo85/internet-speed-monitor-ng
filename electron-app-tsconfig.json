@@ -17,5 +17,8 @@
 			]
 		}
 	},
-	"exclude": ["./src"]
+	"exclude": [
+		"./src",
+		"./copyStaticAssets.ts"
+	]
 }
