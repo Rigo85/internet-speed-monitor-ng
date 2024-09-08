@@ -152,3 +152,47 @@ async function onShowHistoryWindow(window: BrowserWindow, event: any) {
 		ElectronApp.getInstance().MainWindow?.webContents.send("toggle-button", "history");
 	}
 }
+
+export function createAppSettingsWindow(parent: BrowserWindow): BrowserWindow {
+	const size = {
+		"default": [300, 300]
+	} as Record<string, Pair<number>> & { default: Pair<number> };
+
+	const icon = {
+		"darwin": "./public/icon.icns",
+		"win32": "./public/icon.ico",
+		"default": "./public/icon.png"
+	} as Record<string, string> & { default: string };
+
+	return createWindow({
+		size,
+		icon,
+		frame: true,
+		transparent: false,
+		parent,
+		route: "settings",
+		devTools,
+		alwaysOnTop: false,
+		resizable: false,
+		show: false,
+		onShow: async (window: BrowserWindow, event: any) => {
+			if (devTools) {
+				window.webContents.openDevTools();
+			}
+
+			try {
+				ElectronApp.getInstance().MainWindow?.webContents.send("toggle-button", "settings");
+				const dbSettings = await Settings.getInstance().getSettings();
+				window.webContents.send("settings-data", dbSettings);
+			} catch (e) {
+				console.error("onShowAppSettingsWindow", e);
+			}
+		},
+		onClose: (window: BrowserWindow, event: any) => {
+			ElectronApp.getInstance().MainWindow?.webContents.send("toggle-button", "settings");
+			event.preventDefault();
+			window.webContents.closeDevTools();
+			window.hide();
+		}
+	});
+}

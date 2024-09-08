@@ -18,6 +18,7 @@ export class MainComponent implements OnInit {
 	downloadSpeed: string = "0";
 	uploadSpeed: string = "0";
 	isHistoryButtonDisabled: boolean = false;
+	isSettingsButtonDisabled: boolean = false;
 
 	constructor(
 		private electronService: ElectronService,
@@ -48,7 +49,13 @@ export class MainComponent implements OnInit {
 	onButtonToggle(event: any, data: string) {
 		if (data === "history") {
 			this.isHistoryButtonDisabled = !this.isHistoryButtonDisabled;
+		} else if(data === "settings") {
+			this.isSettingsButtonDisabled = !this.isSettingsButtonDisabled;
 		}
 		this.cdr.detectChanges();
+	}
+
+	onAppSettings() {
+		this.electronService.appSettings();
 	}
 }

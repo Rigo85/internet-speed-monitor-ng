@@ -1,6 +1,6 @@
 import { app, BrowserWindow, dialog, ipcMain } from "electron";
 
-import { createHistoryWindow, createMainWindow } from "./browserWindowHelper";
+import { createAppSettingsWindow, createHistoryWindow, createMainWindow } from "./browserWindowHelper";
 import { Settings } from "../core/Settings";
 import { ISpeedTestResult, speedTest } from "../core/OoklaSpeedTester";
 import { formatSpeed, formatTime } from "./utils";
@@ -10,10 +10,12 @@ export class ElectronApp {
 	private mainWindow: BrowserWindow | undefined;
 	private historyWindow: BrowserWindow | undefined;
 	private readonly settings: Settings;
+	private appSettingsWindow: BrowserWindow | undefined;
 
 	constructor() {
 		this.mainWindow = createMainWindow();
 		this.historyWindow = createHistoryWindow(this.mainWindow);
+		this.appSettingsWindow = createAppSettingsWindow(this.mainWindow);
 		this.settings = Settings.getInstance();
 	}
 
@@ -43,6 +45,8 @@ export class ElectronApp {
 			ipcMain.on("reload", this.reloadApp.bind(this));
 			ipcMain.on("close-app", this.closeMainWindow.bind(this));
 			ipcMain.on("speed-history", this.showHistoryWindow.bind(this));
+			ipcMain.on("app-settings", this.showAppSettings.bind(this));
+			ipcMain.on("update-refresh-time", this.updateRefreshTime.bind(this));
 
 			this.mainWindow?.once("ready-to-show", () => {
 				this.mainWindow?.show();
@@ -64,7 +68,7 @@ export class ElectronApp {
 			console.info(`creating reload every ${dbSettings.refreshTime / 60000} min`);
 			const intervalId = setInterval(() => this.reloadApp(), dbSettings.refreshTime);
 			console.info(`interval id: ${intervalId}`);
-			await this.settings.setIntervalId(intervalId as unknown as number);
+			await this.settings.setIntervalId(intervalId[Symbol.toPrimitive]());
 		} catch (e) {
 			console.error("refreshApp", e);
 		}
@@ -108,6 +112,10 @@ export class ElectronApp {
 		this.historyWindow?.show();
 	}
 
+	private showAppSettings() {
+		this.appSettingsWindow?.show();
+	}
+
 	private closeMainWindow(event: any) {
 		if (process.platform !== "darwin") {
 			const buttons = {YES: 0, NO: 1};
@@ -126,11 +134,28 @@ export class ElectronApp {
 					this.historyWindow.destroy();
 					this.historyWindow = undefined;
 				}
+				if (this.appSettingsWindow) {
+					this.appSettingsWindow.destroy();
+					this.appSettingsWindow = undefined;
+				}
 				(this.settings as any) = undefined;
 				app.quit();
 			} else {
 				event.preventDefault();
 			}
+		}
+	}
+
+	private async updateRefreshTime(event: any, value: any) {
+		console.info(`update refresh time: ${value || 0}`);
+		try {
+			const dbSettings = await this.settings.getSettings();
+			if (!dbSettings || !value) return;
+
+			await this.settings.setRefreshTime(value * 60 * 1000);
+			await this.refreshApp();
+		} catch (e) {
+			console.error("updateRefreshTime", e);
 		}
 	}
 }

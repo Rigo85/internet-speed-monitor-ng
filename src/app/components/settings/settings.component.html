@@ -1,0 +1,8 @@
+<div class="container">
+	<form>
+		<label class="form-label" id="label_range_refresh" for="select_refresh_time">Refresh Time</label>
+		<select class="form-select" [(ngModel)]="selectedRefreshTime" id="select_refresh_time" (change)="onChange($event)">
+			<option *ngFor="let time of refreshTimes" [value]="time">{{ time }} min</option>
+		</select>
+	</form>
+</div>

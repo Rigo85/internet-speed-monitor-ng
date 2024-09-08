@@ -40,4 +40,16 @@ export class ElectronService {
 	onToggleButton(listener: (event: any, data: any) => void) {
 		window.electronAPI.on("toggle-button", listener);
 	}
+
+	appSettings() {
+		window.electronAPI.send("app-settings", []);
+	}
+
+	onSettingsData(listener: (event: any, data: any) => void) {
+		window.electronAPI.on("settings-data", listener);
+	}
+
+	updateRefreshTime(data: number) {
+		window.electronAPI.send("update-refresh-time", [data]);
+	}
 }

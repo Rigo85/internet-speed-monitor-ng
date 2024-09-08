@@ -16,12 +16,14 @@
 	</div>
 	<div class="row justify-content-between text-center row-space">
 		<div class="col-4 d-flex-center">
-			<button class="btn btn-outline-secondary btn-round" (click)="onHistory()" [disabled]="isHistoryButtonDisabled">
+			<button class="btn btn-outline-secondary btn-round" (click)="onHistory()"
+					[disabled]="isHistoryButtonDisabled">
 				<i class="material-icons">history</i>
 			</button>
 		</div>
 		<div class="col-4 d-flex-center">
-			<button class="btn btn-outline-secondary btn-round">
+			<button class="btn btn-outline-secondary btn-round" (click)="onAppSettings()"
+					[disabled]="isSettingsButtonDisabled">
 				<i class="material-icons">settings</i>
 			</button>
 		</div>
