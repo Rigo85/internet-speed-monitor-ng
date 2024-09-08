@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from "@angular/core";
 import { BrowserModule } from "@angular/platform-browser";
 import { DataTableDirective, DataTablesModule } from "angular-datatables";
 import { Config } from "datatables.net";
+import "datatables.net-buttons-dt";
 
 import { ElectronService } from "../../services/electron.service";
 
@@ -27,12 +28,8 @@ export class HistoryComponent implements OnInit {
 		this.dtOptions = {
 			"bLengthChange": false,
 			"pageLength": 10,
-			// dom: "Bfrtip",
-			// buttons: [
-			// 	$.extend(true, {}, buttonCommon, {
-			// 		extend: "excelHtml5"
-			// 	})
-			// ],
+			dom: "Bfrtip",
+			buttons: ["excel"],
 			data: [],
 			columns: [
 				{title: "Id", data: "id"},

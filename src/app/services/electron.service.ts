@@ -36,4 +36,8 @@ export class ElectronService {
 	onHistoryData(listener: (event: any, data: any) => void) {
 		window.electronAPI.on("speed-history-data", listener);
 	}
+
+	onToggleButton(listener: (event: any, data: any) => void) {
+		window.electronAPI.on("toggle-button", listener);
+	}
 }

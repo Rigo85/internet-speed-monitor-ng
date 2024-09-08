@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component } from "@angular/core";
+import { ChangeDetectorRef, Component, OnInit } from "@angular/core";
 import { ElectronService, ISpeedUpdate } from "../../services/electron.service";
 import { HistoryComponent } from "../history/history.component";
 
@@ -13,19 +13,21 @@ declare var bootstrap: any;
 	templateUrl: "./main.component.html",
 	styleUrl: "./main.component.scss"
 })
-export class MainComponent implements AfterViewInit {
+export class MainComponent implements OnInit {
 	time: string = "--:--:--";
 	downloadSpeed: string = "0";
 	uploadSpeed: string = "0";
+	isHistoryButtonDisabled: boolean = false;
 
 	constructor(
 		private electronService: ElectronService,
 		private cdr: ChangeDetectorRef
 	) {}
 
-	ngAfterViewInit() {
+	ngOnInit() {
 		this.electronService.reload();
 		this.electronService.onSpeedUpdate(this.onSpeedUpdate.bind(this));
+		this.electronService.onToggleButton(this.onButtonToggle.bind(this));
 	}
 
 	onSpeedUpdate(event: any, data: ISpeedUpdate) {
@@ -41,5 +43,12 @@ export class MainComponent implements AfterViewInit {
 
 	onHistory() {
 		this.electronService.speedHistory();
+	}
+
+	onButtonToggle(event: any, data: string) {
+		if (data === "history") {
+			this.isHistoryButtonDisabled = !this.isHistoryButtonDisabled;
+		}
+		this.cdr.detectChanges();
 	}
 }

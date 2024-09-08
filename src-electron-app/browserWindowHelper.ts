@@ -2,6 +2,7 @@ import { BrowserWindow, screen } from "electron";
 import path from "path";
 import { config } from "dotenv";
 import { Settings } from "../core/Settings";
+import { ElectronApp } from "./ElectronApp";
 
 config({path: ".env"});
 
@@ -129,6 +130,7 @@ export function createHistoryWindow(parent: BrowserWindow): BrowserWindow {
 		show: false,
 		onShow: onShowHistoryWindow,
 		onClose: (window: BrowserWindow, event: any) => {
+			ElectronApp.getInstance().MainWindow?.webContents.send("toggle-button", "history");
 			event.preventDefault();
 			window.webContents.closeDevTools();
 			window.hide();
@@ -142,9 +144,11 @@ async function onShowHistoryWindow(window: BrowserWindow, event: any) {
 	}
 
 	try {
+		ElectronApp.getInstance().MainWindow?.webContents.send("toggle-button", "history");
 		const data = await Settings.getInstance().getSpeedHistory();
 		window.webContents.send("speed-history-data", data);
 	} catch (e) {
 		console.error("onShowHistoryWindow", e);
+		ElectronApp.getInstance().MainWindow?.webContents.send("toggle-button", "history");
 	}
 }
