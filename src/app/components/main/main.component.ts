@@ -6,7 +6,6 @@ declare var bootstrap: any;
 
 @Component({
 	selector: "app-main",
-	standalone: true,
 	imports: [
 		HistoryComponent
 	],
@@ -49,7 +48,7 @@ export class MainComponent implements OnInit {
 	onButtonToggle(event: any, data: string) {
 		if (data === "history") {
 			this.isHistoryButtonDisabled = !this.isHistoryButtonDisabled;
-		} else if(data === "settings") {
+		} else if (data === "settings") {
 			this.isSettingsButtonDisabled = !this.isSettingsButtonDisabled;
 		}
 		this.cdr.detectChanges();

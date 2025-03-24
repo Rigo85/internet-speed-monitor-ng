@@ -5,7 +5,6 @@ import { NgForOf } from "@angular/common";
 
 @Component({
 	selector: "app-settings",
-	standalone: true,
 	imports: [
 		FormsModule,
 		NgForOf

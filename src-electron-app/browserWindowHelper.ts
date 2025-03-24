@@ -60,7 +60,7 @@ export function createWindow(eabwo: ElectronAppBrowserWindowOptions): BrowserWin
 	window.setResizable(eabwo.resizable);
 	window.setIcon(icon);
 
-	window.on("show", (event: any) => {
+	(window as any).on("show", (event: any) => {
 		if (eabwo.onShow) {
 			eabwo.onShow(window, event);
 		}

@@ -8,7 +8,6 @@ import { ElectronService } from "../../services/electron.service";
 
 @Component({
 	selector: "history",
-	standalone: true,
 	imports: [BrowserModule, DataTablesModule],
 	templateUrl: "./history.component.html",
 	styleUrl: "./history.component.scss"
