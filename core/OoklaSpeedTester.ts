@@ -74,7 +74,7 @@ export async function speedTest(): Promise<ISpeedTestResult | undefined> {
 	}
 
 	try {
-		const speedTestPath = path.join("core", "ookla-speedtest", process.platform, `speedtest${ext}`);
+		const speedTestPath = path.join("core", "ookla-speedtest", process.platform, `speedtest${ext}  --accept-license`);
 		const {stdout, stderr} = await exec(`${speedTestPath} -f json`);
 		if (stderr) {
 			console.info("speedTest", stderr);
