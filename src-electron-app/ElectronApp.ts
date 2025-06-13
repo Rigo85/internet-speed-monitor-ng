@@ -1,9 +1,11 @@
-import { app, BrowserWindow, dialog, ipcMain } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 
 import { createAppSettingsWindow, createHistoryWindow, createMainWindow } from "./browserWindowHelper";
 import { Settings } from "../core/Settings";
-import { ISpeedTestResult, speedTest } from "../core/OoklaSpeedTester";
+import { speedTest } from "../core/OoklaSpeedTester";
+import { ISpeedTestResult } from "../core/headers";
 import { formatSpeed, formatTime } from "./utils";
+import { getPublicIp } from "../core/getIp";
 
 export class ElectronApp {
 	private static instance: ElectronApp;
@@ -47,6 +49,7 @@ export class ElectronApp {
 			ipcMain.on("speed-history", this.showHistoryWindow.bind(this));
 			ipcMain.on("app-settings", this.showAppSettings.bind(this));
 			ipcMain.on("update-refresh-time", this.updateRefreshTime.bind(this));
+			ipcMain.on("app-info", this.onInfo.bind(this));
 
 			this.mainWindow?.once("ready-to-show", () => {
 				this.mainWindow?.show();
@@ -74,11 +77,22 @@ export class ElectronApp {
 		}
 	}
 
+	async onInfo(event: any, args: any) {
+		shell.openExternal("https://github.com/Rigo85/internet-speed-monitor-ng")
+			.then(() => {
+				console.log("URL opened successfully.");
+			})
+			.catch(err => {
+				console.error("Error opening URL:", err);
+			});
+	}
+
 	async reloadApp(event?: any, args?: any, consumers = [this.logging.bind(this), this.notify.bind(this), this.saveOnDB.bind(this)]) {
 		console.info("reloading...");
 		try {
-			const data = await speedTest();
+			const [data, ipInfo] = await Promise.all([speedTest(), getPublicIp()]);
 			if (!data) return;
+			data.ipInfo = ipInfo;
 			consumers.forEach(consumer => consumer(data));
 		} catch (e) {
 			console.error("reloadApp", e);
@@ -87,11 +101,20 @@ export class ElectronApp {
 	}
 
 	private logging(data: ISpeedTestResult) {
-		console.info("speed-update", JSON.stringify({
+		const ipLog = data.ipInfo ? {
+			IP: data.ipInfo.ip,
+			City: (data.ipInfo as any).city,
+			Country: data.ipInfo.country
+		} : {note: "No IP info available"};
+
+		const log = {
 			time: formatTime(data.updateAt),
 			downloadSpeed: formatSpeed(data.download.bandwidth),
-			uploadSpeed: formatSpeed(data.upload.bandwidth)
-		}));
+			uploadSpeed: formatSpeed(data.upload.bandwidth),
+			...ipLog
+		};
+
+		console.info("speed-update", JSON.stringify(log));
 	}
 
 	private notify(data: ISpeedTestResult) {
@@ -100,7 +123,9 @@ export class ElectronApp {
 			{
 				time: formatTime(data.updateAt),
 				downloadSpeed: formatSpeed(data.download.bandwidth),
-				uploadSpeed: formatSpeed(data.upload.bandwidth)
+				uploadSpeed: formatSpeed(data.upload.bandwidth),
+				ip: data.ipInfo?.ip,
+				country: data.ipInfo?.country
 			});
 	}
 

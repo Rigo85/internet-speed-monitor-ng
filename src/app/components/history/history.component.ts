@@ -42,10 +42,11 @@ export class HistoryComponent implements OnInit {
 				{title: "Server City", data: "Server City"},
 				{title: "Server Country", data: "Server Country"},
 				{title: "Network Interface", data: "Network Interface"},
+				{title: "IP Address", data: "IP Address"},
 				{title: "URL", data: "URL"}
 			],
 			columnDefs: [{
-				target: 11,
+				target: 12,
 				render: (data: any, type: any, row: any, meta: any) => {
 					return `<a target="_blank" href="${data}">Result</a>`;
 				}

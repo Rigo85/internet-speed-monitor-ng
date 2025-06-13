@@ -12,6 +12,7 @@ export interface IResult {
 	"Server City": string;
 	"Server Country": string;
 	"Network Interface": string;
+	"IP Address": string;
 	URL: string;
 }
 
@@ -56,6 +57,7 @@ export class SpeedTestRepository {
                 "speedResult" -> 'server' ->> 'location' as "Server City",
                 "speedResult" -> 'server' ->> 'country' as "Server Country",
                 "speedResult" -> 'interface' ->> 'name' as "Network Interface",
+	            "speedResult" -> 'ipInfo' ->> 'ip' as "IP Address",
                 "speedResult" -> 'result' ->> 'url' as "URL"
             from speedtest
             order by

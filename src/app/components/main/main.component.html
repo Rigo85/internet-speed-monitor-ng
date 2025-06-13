@@ -4,6 +4,16 @@
 			<label id="label_time" class="">{{ time }}</label>
 		</div>
 	</div>
+	<div class="row justify-content-center row-space drag-region">
+		<div class="col-auto">
+			<label id="label_ip" class="">{{ ip }}</label>
+		</div>
+	</div>
+	<div class="row justify-content-center row-space drag-region">
+		<div class="col-auto">
+			<label id="label_country" class="">{{ country }}</label>
+		</div>
+	</div>
 	<div class="row text-center row-space drag-region">
 		<div class="col-6 d-flex-center">
 			<label id="label_download" class="me-2">{{ downloadSpeed }}</label>
@@ -15,22 +25,29 @@
 		</div>
 	</div>
 	<div class="row justify-content-between text-center row-space">
-		<div class="col-4 d-flex-center">
+		<div class="col-2 d-flex-center">
 			<button class="btn btn-outline-secondary btn-round" (click)="onHistory()"
 					[disabled]="isHistoryButtonDisabled">
 				<i class="material-icons">history</i>
 			</button>
 		</div>
-		<div class="col-4 d-flex-center">
+		<div class="col-2 d-flex-center">
 			<button class="btn btn-outline-secondary btn-round" (click)="onAppSettings()"
 					[disabled]="isSettingsButtonDisabled">
 				<i class="material-icons">settings</i>
 			</button>
 		</div>
-		<div class="col-4 d-flex-center">
+		<div class="col-2 d-flex-center">
+			<button class="btn btn-outline-secondary btn-round" (click)="onAppInfo()">
+				<i class="material-icons">info</i>
+			</button>
+		</div>
+		<div class="col-2 d-flex-center">
 			<button class="btn btn-outline-secondary btn-round" (click)="onClose()">
 				<i class="material-icons">close</i>
 			</button>
 		</div>
 	</div>
+	<div class="row row-space"></div>
 </div>
+

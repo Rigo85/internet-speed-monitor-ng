@@ -4,6 +4,8 @@ export interface ISpeedUpdate {
 	time: string;
 	downloadSpeed: string;
 	uploadSpeed: string;
+	ip?: string;
+	country?: string;
 }
 
 @Injectable({
@@ -43,6 +45,10 @@ export class ElectronService {
 
 	appSettings() {
 		window.electronAPI.send("app-settings", []);
+	}
+
+	onAppInfo() {
+		window.electronAPI.send("app-info", []);
 	}
 
 	onSettingsData(listener: (event: any, data: any) => void) {

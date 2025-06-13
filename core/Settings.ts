@@ -78,7 +78,8 @@ export class Settings {
 						hour12: true
 					}).format(new Date(d.UpdateAt)),
 					DownloadSpeed: formatSpeed(d.DownloadSpeed),
-					UploadSpeed: formatSpeed(d.UploadSpeed)
+					UploadSpeed: formatSpeed(d.UploadSpeed),
+					"IP Address": d["IP Address"] || "N/A"
 				})
 			);
 		} catch (e) {

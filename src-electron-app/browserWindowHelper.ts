@@ -78,8 +78,8 @@ export function createWindow(eabwo: ElectronAppBrowserWindowOptions): BrowserWin
 export function createMainWindow(): BrowserWindow {
 	const size = {
 		"darwin": [400, 260],
-		"win32": [400, 290],
-		"default": [400, 260]
+		"win32": [400, 300],
+		"default": [400, 300]
 	} as Record<string, Pair<number>> & { default: Pair<number> };
 
 	const icon = {

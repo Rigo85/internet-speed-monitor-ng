@@ -6,6 +6,20 @@ label#label_time {
 	-webkit-text-stroke: 1px yellowgreen; /* width and color */
 }
 
+label#label_ip {
+	font-weight: bold;
+	font-size: x-large;
+	color: black;
+	-webkit-text-stroke: 1px yellowgreen; /* width and color */
+}
+
+label#label_country {
+	font-weight: bold;
+	font-size: x-large;
+	color: black;
+	-webkit-text-stroke: 1px yellowgreen; /* width and color */
+}
+
 label#label_download {
 	font-weight: bold;
 	font-size: xx-large;
@@ -65,8 +79,8 @@ label#label_upload {
 }
 
 .btn-round {
-	width: 50px;
-	height: 50px;
+	width: 40px;
+	height: 40px;
 	border-radius: 50%;
 	display: flex;
 	align-items: center;

@@ -18,6 +18,8 @@ export class MainComponent implements OnInit {
 	uploadSpeed: string = "0";
 	isHistoryButtonDisabled: boolean = false;
 	isSettingsButtonDisabled: boolean = false;
+	ip: string = "<no-ip>";
+	country: string = "<no-country>";
 
 	constructor(
 		private electronService: ElectronService,
@@ -34,6 +36,8 @@ export class MainComponent implements OnInit {
 		this.time = data.time;
 		this.downloadSpeed = data.downloadSpeed;
 		this.uploadSpeed = data.uploadSpeed;
+		this.ip = data.ip || "<no-ip>";
+		this.country = data.country || "<no-country>";
 		this.cdr.detectChanges();
 	}
 
@@ -56,5 +60,9 @@ export class MainComponent implements OnInit {
 
 	onAppSettings() {
 		this.electronService.appSettings();
+	}
+
+	onAppInfo() {
+		this.electronService.onAppInfo();
 	}
 }
