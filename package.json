@@ -1,6 +1,6 @@
 {
   "name": "internet-speed-monitor-ng",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Desktop internet speed monitor powered by Ookla Speedtest CLI, built with Electron and Angular",
   "main": "dist-electron-app/src-electron-app/main.js",
   "private": true,
