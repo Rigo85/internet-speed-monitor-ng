@@ -30,7 +30,7 @@ export function registerDesktopEntry(): void {
 	if (!app.isPackaged || process.platform !== "linux") return;
 
 	try {
-		const exePath = process.execPath;
+		const exePath = process.env["APPIMAGE"] || process.execPath;
 		const iconSrc = path.join(process.resourcesPath, "public", "icon.png");
 
 		if (fs.existsSync(iconSrc)) {
@@ -46,7 +46,7 @@ export function registerDesktopEntry(): void {
 			"Name=Internet Speed Monitor",
 			"Comment=Monitor your internet speed using the Ookla Speedtest CLI",
 			`Exec=${escapeDesktopExec(exePath)} %U`,
-			`Icon=${DESKTOP_ID}`,
+			`Icon=${ICON_FILE}`,
 			"Categories=Network;Monitor;",
 			"StartupNotify=true",
 			"Terminal=false",
