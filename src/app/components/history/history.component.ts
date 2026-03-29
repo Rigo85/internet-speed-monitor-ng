@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import {Component, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import { BrowserModule } from "@angular/platform-browser";
 import { DataTableDirective, DataTablesModule } from "angular-datatables";
 import { Config } from "datatables.net";
@@ -12,12 +12,38 @@ import { ElectronService } from "../../services/electron.service";
 	templateUrl: "./history.component.html",
 	styleUrl: "./history.component.scss"
 })
-export class HistoryComponent implements OnInit {
+export class HistoryComponent implements OnInit, OnDestroy {
 	dtOptions: any;
 	@ViewChild(DataTableDirective, {static: false})
 	dtElement!: DataTableDirective;
+	private readonly onDocumentClick = (event: Event) => {
+		const target = event.target as HTMLElement | null;
+		const resultLink = target?.closest(".result-link") as HTMLElement | null;
+		if (!resultLink) return;
+
+		event.preventDefault();
+		const url = resultLink.getAttribute("data-url");
+		if (url) {
+			this.electronService.openResultUrl(url);
+		}
+	};
 
 	constructor(private electronService: ElectronService) {}
+
+	private static buildResultLink(data: string): string {
+		const url = typeof data === "string" ? data.trim() : "";
+		if (!/^https?:\/\//i.test(url)) {
+			return "N/A";
+		}
+
+		const escaped = url
+			.replace(/&/g, "&amp;")
+			.replace(/"/g, "&quot;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;");
+
+		return `<a href="#" class="result-link" data-url="${escaped}">Result</a>`;
+	}
 
 	ngOnInit(): void {
 
@@ -47,12 +73,14 @@ export class HistoryComponent implements OnInit {
 			],
 			columnDefs: [{
 				target: 12,
-				render: (data: any, type: any, row: any, meta: any) => {
-					return `<a target="_blank" href="${data}">Result</a>`;
+				render: (data: any) => {
+					return HistoryComponent.buildResultLink(data);
 				}
 			}],
 			order: [[0, "desc"]]
 		} as Config;
+
+		document.addEventListener("click", this.onDocumentClick);
 
 		this.electronService.onHistoryData((event, data) => {
 			this.dtElement?.dtInstance.then((dtInstance) => {
@@ -61,5 +89,9 @@ export class HistoryComponent implements OnInit {
 				dtInstance.draw();
 			});
 		});
+	}
+
+	ngOnDestroy(): void {
+		document.removeEventListener("click", this.onDocumentClick);
 	}
 }

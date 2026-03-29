@@ -42,5 +42,12 @@ testem.log
 .DS_Store
 Thumbs.db
 database.sqlite3
+.env
 
+# Build output
 release-builds/
+release/
+
+# Internal docs
+modificaciones.md
+todo.md

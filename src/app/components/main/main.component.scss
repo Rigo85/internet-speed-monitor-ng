@@ -110,3 +110,17 @@ label#label_upload {
 	-webkit-app-region: drag;
 }
 
+.status-label {
+	display: inline-block;
+	min-height: 1.25rem;
+	color: #3a3a3a;
+	font-weight: 600;
+}
+
+.status-warn {
+	color: #8a6d1f;
+}
+
+.status-error {
+	color: #9f1d20;
+}

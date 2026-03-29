@@ -4,8 +4,13 @@ export interface ISpeedUpdate {
 	time: string;
 	downloadSpeed: string;
 	uploadSpeed: string;
-	ip?: string;
-	country?: string;
+	ip: string;
+	country: string;
+}
+
+export interface IMainStatus {
+	message: string;
+	level: "info" | "warn" | "error";
 }
 
 @Injectable({
@@ -20,42 +25,50 @@ export class ElectronService {
 	}
 
 	reload() {
-		window.electronAPI.send("reload", []);
+		window.electronAPI.reload();
 	}
 
 	quit() {
-		window.electronAPI.send("close-app", []);
+		window.electronAPI.closeApp();
 	}
 
 	onSpeedUpdate(listener: (event: any, data: ISpeedUpdate) => void) {
-		window.electronAPI.on("speed-update", listener);
+		window.electronAPI.onSpeedUpdate(listener);
 	}
 
 	speedHistory() {
-		window.electronAPI.send("speed-history", []);
+		window.electronAPI.openHistory();
 	}
 
 	onHistoryData(listener: (event: any, data: any) => void) {
-		window.electronAPI.on("speed-history-data", listener);
+		window.electronAPI.onHistoryData(listener);
 	}
 
 	onToggleButton(listener: (event: any, data: any) => void) {
-		window.electronAPI.on("toggle-button", listener);
+		window.electronAPI.onToggleButton(listener);
 	}
 
 	appSettings() {
-		window.electronAPI.send("app-settings", []);
+		window.electronAPI.openSettings();
 	}
 
 	onAppInfo() {
-		window.electronAPI.send("app-info", []);
+		window.electronAPI.openInfo();
 	}
 
 	onSettingsData(listener: (event: any, data: any) => void) {
-		window.electronAPI.on("settings-data", listener);
+		window.electronAPI.onSettingsData(listener);
 	}
 
 	updateRefreshTime(data: number) {
-		window.electronAPI.send("update-refresh-time", [data]);
+		window.electronAPI.updateRefreshTime(data);
+	}
+
+	openResultUrl(url: string) {
+		window.electronAPI.openResultUrl(url);
+	}
+
+	onMainStatus(listener: (event: any, data: IMainStatus) => void) {
+		window.electronAPI.onMainStatus(listener);
 	}
 }

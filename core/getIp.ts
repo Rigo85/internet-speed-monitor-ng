@@ -8,9 +8,9 @@ import { IdentResponse } from "./headers";
  *
  * @returns The parsed JSON payload (`IdentResponse`) on success, or `undefined` on error.
  */
-export async function getPublicIp(): Promise<IdentResponse | undefined> {
+export async function getPublicIp(timeoutMs = 3000): Promise<IdentResponse | undefined> {
 	try {
-		const response = await axios.get<IdentResponse>("https://4.ident.me/json");
+		const response = await axios.get<IdentResponse>("https://4.ident.me/json", {timeout: timeoutMs});
 		return response.data;
 	} catch (error) {
 		console.error("Failed to fetch public IP:", error);

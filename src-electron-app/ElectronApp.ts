@@ -1,18 +1,31 @@
-import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
+import {app, BrowserWindow, dialog, ipcMain, shell} from "electron";
+import * as path from "path";
 
-import { createAppSettingsWindow, createHistoryWindow, createMainWindow } from "./browserWindowHelper";
-import { Settings } from "../core/Settings";
-import { speedTest } from "../core/OoklaSpeedTester";
-import { ISpeedTestResult } from "../core/headers";
-import { formatSpeed, formatTime } from "./utils";
-import { getPublicIp } from "../core/getIp";
+import {createAppSettingsWindow, createHistoryWindow, createMainWindow} from "./browserWindowHelper";
+import {registerDesktopEntry} from "./desktop-integration";
+import {Settings} from "../core/Settings";
+import {speedTest} from "../core/OoklaSpeedTester";
+import {ISpeedTestResult} from "../core/headers";
+import {formatSpeed, formatTime} from "./utils";
+import {getPublicIp} from "../core/getIp";
+import {IdentResponse} from "../core/headers";
+
+const IP_PLACEHOLDER = "IP unavailable";
+const COUNTRY_PLACEHOLDER = "Location unavailable";
+const IP_RESOLVING_LABEL = "Resolving IP...";
+const COUNTRY_RESOLVING_LABEL = "Resolving location...";
+const MAX_CONSECUTIVE_MEASUREMENT_FAILURES = 10;
+const IP_RETRY_TIMEOUT_MS = 3000;
 
 export class ElectronApp {
 	private static instance: ElectronApp;
 	private mainWindow: BrowserWindow | undefined;
 	private historyWindow: BrowserWindow | undefined;
-	private readonly settings: Settings;
 	private appSettingsWindow: BrowserWindow | undefined;
+	private readonly settings: Settings;
+	private _intervalId: ReturnType<typeof setInterval> | undefined;
+	private isRunningSpeedTest = false;
+	private consecutiveMeasurementFailures = 0;
 
 	constructor() {
 		this.mainWindow = createMainWindow();
@@ -21,28 +34,21 @@ export class ElectronApp {
 		this.settings = Settings.getInstance();
 	}
 
-	static getInstance() {
+	static getInstance(): ElectronApp {
 		if (!ElectronApp.instance) {
 			ElectronApp.instance = new ElectronApp();
 		}
 		return ElectronApp.instance;
 	}
 
-	get MainWindow() {
-		return this.mainWindow;
-	}
+	get MainWindow() { return this.mainWindow; }
+	get HistoryWindow() { return this.historyWindow; }
+	get Settings() { return this.settings; }
 
-	get HistoryWindow() {
-		return this.historyWindow;
-	}
-
-	get Settings() {
-		return this.settings;
-	}
-
-	async init() {
+	async init(): Promise<void> {
 		try {
-			await this.settings.initSettings();
+			registerDesktopEntry();
+			this.settings.initSettings();
 
 			ipcMain.on("reload", this.reloadApp.bind(this));
 			ipcMain.on("close-app", this.closeMainWindow.bind(this));
@@ -50,137 +56,223 @@ export class ElectronApp {
 			ipcMain.on("app-settings", this.showAppSettings.bind(this));
 			ipcMain.on("update-refresh-time", this.updateRefreshTime.bind(this));
 			ipcMain.on("app-info", this.onInfo.bind(this));
+			ipcMain.on("open-result-url", this.openResultUrl.bind(this));
 
 			this.mainWindow?.once("ready-to-show", () => {
 				this.mainWindow?.show();
-				this.refreshApp();
+				this.scheduleRefresh();
 			});
 		} catch (e) {
-			console.error("Electron App init:", e);
+			console.error("ElectronApp.init:", e);
 		}
 	}
 
-	private async refreshApp() {
-		try {
-			const dbSettings = await this.settings.getSettings();
-			if (!dbSettings) return;
-			if (dbSettings.intervalId) {
-				clearInterval(dbSettings.intervalId);
-				await this.settings.setIntervalId(0);
-			}
-			console.info(`creating reload every ${dbSettings.refreshTime / 60000} min`);
-			const intervalId = setInterval(() => this.reloadApp(), dbSettings.refreshTime);
-			console.info(`interval id: ${intervalId}`);
-			await this.settings.setIntervalId(intervalId[Symbol.toPrimitive]());
-		} catch (e) {
-			console.error("refreshApp", e);
+	private getBinaryPath(): string {
+		const ext = process.platform === "win32" ? ".exe" : "";
+		const platform = process.platform === "win32" ? "win32" : "linux";
+		if (app.isPackaged) {
+			return path.join(process.resourcesPath, "ookla-speedtest", platform, `speedtest${ext}`);
 		}
+		return path.join(process.cwd(), "core", "ookla-speedtest", platform, `speedtest${ext}`);
 	}
 
-	async onInfo(event: any, args: any) {
+	private scheduleRefresh(): void {
+		if (this._intervalId !== undefined) {
+			clearInterval(this._intervalId);
+		}
+		const refreshTime = this.settings.getRefreshTime();
+		console.info(`Scheduling speed test every ${refreshTime / 60000} min`);
+		this._intervalId = setInterval(() => this.reloadApp(), refreshTime);
+		this.reloadApp();
+	}
+
+	async onInfo(_event: unknown, _args: unknown): Promise<void> {
 		shell.openExternal("https://github.com/Rigo85/internet-speed-monitor-ng")
-			.then(() => {
-				console.log("URL opened successfully.");
-			})
-			.catch(err => {
-				console.error("Error opening URL:", err);
-			});
+			.catch(err => console.error("Error opening URL:", err));
 	}
 
-	async reloadApp(event?: any, args?: any, consumers = [this.logging.bind(this), this.notify.bind(this), this.saveOnDB.bind(this)]) {
-		console.info("reloading...");
+	async reloadApp(_event?: unknown, _args?: unknown): Promise<void> {
+		if (this.isRunningSpeedTest) {
+			console.warn("Skipping speed test because another run is still in progress.");
+			this.sendStatus("A measurement is already in progress.", "warn");
+			return;
+		}
+
+		this.isRunningSpeedTest = true;
+		console.info("Running speed test...");
 		try {
-			const [data, ipInfo] = await Promise.all([speedTest(), getPublicIp()]);
-			if (!data) return;
-			data.ipInfo = ipInfo;
-			consumers.forEach(consumer => consumer(data));
+			const data = await speedTest(this.getBinaryPath());
+			if (!data) {
+				this.handleMeasurementFailure();
+				return;
+			}
+
+			this.consecutiveMeasurementFailures = 0;
+			this.sendStatus("Measurement updated.", "info");
+			this.logging(data);
+			this.notify(data);
+			const recordId = this.saveOnDB(data);
+			void this.enrichWithIpInfo(recordId, data);
 		} catch (e) {
-			console.error("reloadApp", e);
-			dialog.showErrorBox("Error", "Error testing internet speed.");
+			console.error("reloadApp:", e);
+			this.handleMeasurementFailure();
+		} finally {
+			this.isRunningSpeedTest = false;
 		}
 	}
 
-	private logging(data: ISpeedTestResult) {
-		const ipLog = data.ipInfo ? {
-			IP: data.ipInfo.ip,
-			City: (data.ipInfo as any).city,
-			Country: data.ipInfo.country
-		} : {note: "No IP info available"};
+	private logging(data: ISpeedTestResult): void {
+		const ipLog = data.ipInfo
+			? {IP: data.ipInfo.ip, Country: data.ipInfo.country}
+			: {note: "No IP info available"};
 
-		const log = {
+		console.info("speed-update", JSON.stringify({
 			time: formatTime(data.updateAt),
 			downloadSpeed: formatSpeed(data.download.bandwidth),
 			uploadSpeed: formatSpeed(data.upload.bandwidth),
 			...ipLog
-		};
-
-		console.info("speed-update", JSON.stringify(log));
+		}));
 	}
 
-	private notify(data: ISpeedTestResult) {
-		this.mainWindow?.webContents.send(
-			"speed-update",
-			{
-				time: formatTime(data.updateAt),
-				downloadSpeed: formatSpeed(data.download.bandwidth),
-				uploadSpeed: formatSpeed(data.upload.bandwidth),
-				ip: data.ipInfo?.ip,
-				country: data.ipInfo?.country
-			});
+	private notify(data: ISpeedTestResult): void {
+		this.mainWindow?.webContents.send("speed-update", {
+			time: formatTime(data.updateAt),
+			downloadSpeed: formatSpeed(data.download.bandwidth),
+			uploadSpeed: formatSpeed(data.upload.bandwidth),
+			ip: data.ipInfo?.ip ?? IP_RESOLVING_LABEL,
+			country: data.ipInfo?.country ?? COUNTRY_RESOLVING_LABEL
+		});
 	}
 
-	private saveOnDB(data: ISpeedTestResult) {
-		this.settings?.addSpeedTest(JSON.stringify(data));
+	private saveOnDB(data: ISpeedTestResult): number {
+		return this.settings.addSpeedTest(JSON.stringify(data));
 	}
 
-	private showHistoryWindow() {
+	private showHistoryWindow(): void {
 		this.historyWindow?.show();
+		this.refreshHistoryWindow();
 	}
 
-	private showAppSettings() {
+	private showAppSettings(): void {
 		this.appSettingsWindow?.show();
 	}
 
-	private closeMainWindow(event: any) {
-		if (process.platform !== "darwin") {
-			const buttons = {YES: 0, NO: 1};
-			const window = BrowserWindow.getFocusedWindow();
-			if (window && dialog.showMessageBoxSync(window, {
-				type: "question",
-				title: "Confirmation",
-				message: "Are you sure you want to close the app?",
-				buttons: ["Yes", "No"]
-			}) === buttons.YES) {
-				if (this.mainWindow) {
-					this.mainWindow.destroy();
-					this.mainWindow = undefined;
-				}
-				if (this.historyWindow) {
-					this.historyWindow.destroy();
-					this.historyWindow = undefined;
-				}
-				if (this.appSettingsWindow) {
-					this.appSettingsWindow.destroy();
-					this.appSettingsWindow = undefined;
-				}
-				(this.settings as any) = undefined;
-				app.quit();
-			} else {
-				event.preventDefault();
+	private closeMainWindow(event: Electron.IpcMainEvent): void {
+		const buttons = {YES: 0, NO: 1};
+		const window = BrowserWindow.getFocusedWindow();
+		if (window && dialog.showMessageBoxSync(window, {
+			type: "question",
+			title: "Confirmation",
+			message: "Are you sure you want to close the app?",
+			buttons: ["Yes", "No"]
+		}) === buttons.YES) {
+			if (this._intervalId !== undefined) {
+				clearInterval(this._intervalId);
+				this._intervalId = undefined;
 			}
+			this.mainWindow?.destroy();
+			this.historyWindow?.destroy();
+			this.appSettingsWindow?.destroy();
+			app.quit();
+		} else {
+			event.preventDefault();
 		}
 	}
 
-	private async updateRefreshTime(event: any, value: any) {
-		console.info(`update refresh time: ${value || 0}`);
-		try {
-			const dbSettings = await this.settings.getSettings();
-			if (!dbSettings || !value) return;
+	private updateRefreshTime(_event: unknown, value: number | undefined): void {
+		console.info(`Updating refresh time to ${value ?? 0} min`);
+		if (!value) return;
+		this.settings.setRefreshTime(value * 60 * 1000);
+		this.scheduleRefresh();
+	}
 
-			await this.settings.setRefreshTime(value * 60 * 1000);
-			await this.refreshApp();
-		} catch (e) {
-			console.error("updateRefreshTime", e);
+	private async enrichWithIpInfo(recordId: number, data: ISpeedTestResult): Promise<void> {
+		this.sendStatus("Resolving IP information...", "info");
+		const ipInfo = await this.getPublicIpWithRetry();
+
+		if (!ipInfo) {
+			this.sendStatus("Measurement saved without IP information.", "warn");
+			this.notify({
+				...data,
+				ipInfo: {
+					ip: IP_PLACEHOLDER,
+					country: COUNTRY_PLACEHOLDER
+				}
+			});
+			return;
 		}
+
+		data.ipInfo = ipInfo;
+		this.settings.updateSpeedTestIpInfo(recordId, JSON.stringify(ipInfo));
+		this.notify(data);
+		this.refreshHistoryWindow();
+		this.sendStatus("", "info");
+	}
+
+	private async getPublicIpWithRetry(): Promise<IdentResponse | undefined> {
+		for (let attempt = 1; attempt <= 2; attempt++) {
+			const ipInfo = await getPublicIp(IP_RETRY_TIMEOUT_MS);
+			if (ipInfo) {
+				return ipInfo;
+			}
+
+			console.warn(`Public IP lookup attempt ${attempt} failed.`);
+		}
+
+		return undefined;
+	}
+
+	private refreshHistoryWindow(): void {
+		if (!this.historyWindow || this.historyWindow.isDestroyed() || !this.historyWindow.isVisible()) {
+			return;
+		}
+
+		const data = this.settings.getSpeedHistory();
+		this.historyWindow.webContents.send("speed-history-data", data);
+	}
+
+	private sendStatus(message: string, level: "info" | "warn" | "error"): void {
+		this.mainWindow?.webContents.send("main-status", {message, level});
+	}
+
+	private handleMeasurementFailure(): void {
+		this.consecutiveMeasurementFailures += 1;
+		const currentFailures = this.consecutiveMeasurementFailures;
+		console.warn(`Speed measurement failed (${currentFailures}/${MAX_CONSECUTIVE_MEASUREMENT_FAILURES}).`);
+		this.sendStatus(
+			`Measurement failed (${currentFailures}/${MAX_CONSECUTIVE_MEASUREMENT_FAILURES}). Retrying on the next cycle.`,
+			"warn"
+		);
+
+		if (currentFailures < MAX_CONSECUTIVE_MEASUREMENT_FAILURES) {
+			return;
+		}
+
+		const response = dialog.showMessageBoxSync(this.mainWindow ?? undefined, {
+			type: "warning",
+			title: "Repeated measurement failures",
+			message: "The app failed to obtain a speed measurement 10 times in a row.",
+			detail: "Do you want to close the app? Choose No to keep it running and reset the failure counter.",
+			buttons: ["Yes", "No"],
+			defaultId: 1,
+			cancelId: 1
+		});
+
+		if (response === 0) {
+			app.quit();
+			return;
+		}
+
+		this.consecutiveMeasurementFailures = 0;
+		this.sendStatus("Failure counter reset. Keeping the last successful measurement visible.", "warn");
+	}
+
+	private openResultUrl(_event: unknown, url: string | undefined): void {
+		if (!url || !/^https?:\/\//i.test(url)) {
+			console.warn("Rejected invalid result URL:", url);
+			return;
+		}
+
+		shell.openExternal(url).catch(err => console.error("Error opening result URL:", err));
 	}
 }

@@ -1,71 +1,145 @@
 {
   "name": "internet-speed-monitor-ng",
   "version": "1.0.0",
-  "scripts": {
-    "start-electron": "electron . --no-sandbox",
-    "ng": "ng",
-    "start": "ng build --base-href ./ && npm run build-app-ts && npm run copy-static-assets && electron --no-sandbox .",
-    "package-mac": "electron-packager . internet-speed-monitor --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/icon.icns --prune=true --out=release-builds",
-    "package-win": "electron-packager . internet-speed-monitor --overwrite --asar --platform=win32 --arch=x64 --icon=public/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Internet speed monitor\"",
-    "package-linux": "electron-packager . internet-speed-monitor --overwrite --asar --platform=linux --arch=x64 --icon=public/icon.png --prune=true --out=release-builds",
-    "complete-package-linux": "npm run package-linux && ts-node --project electron-app-tsconfig.json copyStaticAssetsRelease.ts",
-    "complete-package-win": "npm run package-win && ts-node --project electron-app-tsconfig.json copyStaticAssetsRelease.ts",
-    "copy-static-assets": "ts-node --project electron-app-tsconfig.json copyStaticAssets.ts",
-    "build": "ng build",
-    "build-app-ts": "tsc -p electron-app-tsconfig.json",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test"
-  },
+  "description": "Desktop internet speed monitor powered by Ookla Speedtest CLI, built with Electron and Angular",
   "main": "dist-electron-app/src-electron-app/main.js",
   "private": true,
   "author": "Rigoberto L. Salgado Reyes",
   "license": "AGPL-3.0",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "ng": "ng",
+    "start": "ng build --base-href ./ && npm run build:electron && electron .",
+    "build:angular": "ng build --base-href ./ --configuration production",
+    "build:electron": "tsc -p electron-app-tsconfig.json",
+    "build": "npm run build:angular && npm run build:electron",
+    "dist:linux": "npm run build && electron-builder --linux",
+    "dist:win": "npm run build && electron-builder --win",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "postinstall": "electron-rebuild -f -w better-sqlite3"
+  },
+  "build": {
+    "appId": "com.rigoberto.internet-speed-monitor",
+    "productName": "Internet Speed Monitor",
+    "copyright": "Copyright © 2024 Rigoberto L. Salgado Reyes",
+    "asar": true,
+    "asarUnpack": [
+      "**/node_modules/better-sqlite3/**",
+      "**/node_modules/bindings/**"
+    ],
+    "files": [
+      "dist/**/*",
+      "dist-electron-app/**/*",
+      "node_modules/**/*",
+      "!node_modules/.cache/**/*",
+      "!src/**/*",
+      "!src-electron-app/**/*",
+      "!core/**/*",
+      "!shared/**/*",
+      "!test/**/*",
+      "!release/**/*",
+      "!**/*.ts",
+      "!**/*.map"
+    ],
+    "extraResources": [
+      {
+        "from": "core/ookla-speedtest",
+        "to": "ookla-speedtest",
+        "filter": [
+          "linux/**",
+          "win32/**"
+        ]
+      },
+      {
+        "from": "public",
+        "to": "public",
+        "filter": [
+          "icon.png",
+          "icon.ico"
+        ]
+      }
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "tar.gz",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "public/icon.png",
+      "category": "Network",
+      "synopsis": "Monitor internet speed using the Ookla Speedtest CLI"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "public/icon.ico"
+    },
+    "npmRebuild": true
   },
   "dependencies": {
-    "@angular/animations": "^19.2.3",
-    "@angular/common": "^19.2.3",
-    "@angular/compiler": "^19.2.3",
-    "@angular/core": "^19.2.3",
-    "@angular/forms": "^19.2.3",
-    "@angular/platform-browser": "^19.2.3",
-    "@angular/platform-browser-dynamic": "^19.2.3",
-    "@angular/router": "^19.2.3",
+    "@angular/animations": "^19.2.20",
+    "@angular/common": "^19.2.20",
+    "@angular/compiler": "^19.2.20",
+    "@angular/core": "^19.2.20",
+    "@angular/forms": "^19.2.20",
+    "@angular/platform-browser": "^19.2.20",
+    "@angular/platform-browser-dynamic": "^19.2.20",
+    "@angular/router": "^19.2.20",
     "angular-datatables": "^19.0.0",
     "axios": "^1.9.0",
+    "better-sqlite3": "^11.10.0",
     "bootstrap": "^5.3.3",
     "datatables.net": "^2.0.3",
     "datatables.net-bs5": "^2.0.3",
     "datatables.net-buttons": "^3.1.2",
     "datatables.net-buttons-dt": "^3.1.2",
-    "dotenv": "^16.4.5",
-    "electron-log": "^5.3.3",
     "jquery": "^3.6.0",
     "jszip": "^3.10.1",
     "rxjs": "~7.8.0",
-    "sqlite3": "^5.1.7",
     "tslib": "^2.3.0",
-    "url": "^0.11.4",
     "zone.js": "~0.15.0"
   },
+  "overrides": {
+    "serialize-javascript": ">=7.0.5",
+    "tar": ">=7.5.13"
+  },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^19.2.4",
-    "@angular/cli": "^19.2.4",
-    "@angular/compiler-cli": "^19.2.3",
-    "@electron/packager": "^18.3.6",
-    "@types/jasmine": "~5.1.0",
+    "@angular-devkit/build-angular": "^19.2.23",
+    "@angular/cli": "^19.2.23",
+    "@angular/compiler-cli": "^19.2.20",
+    "@electron/rebuild": "^4.0.3",
+    "@types/better-sqlite3": "^7.6.12",
     "@types/jquery": "^3.5.9",
-    "@types/shelljs": "^0.8.15",
     "electron": "^35.0.3",
-    "jasmine-core": "~5.1.0",
-    "karma": "~6.4.0",
-    "karma-chrome-launcher": "~3.2.0",
-    "karma-coverage": "~2.2.0",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0",
-    "shelljs": "^0.8.5",
-    "ts-node": "^10.9.2",
-    "typescript": "~5.8.2"
+    "electron-builder": "^26.8.1",
+    "typescript": "~5.8.2",
+    "vitest": "^3.1.1"
   }
 }

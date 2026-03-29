@@ -1,6 +1,6 @@
-import { AppDAO } from "./AppDAO";
+import {AppDAO} from "./AppDAO";
 
-export interface IResult {
+export interface ISpeedRecord {
 	id: number;
 	DownloadSpeed: string;
 	UploadSpeed: string;
@@ -23,45 +23,45 @@ export class SpeedTestRepository {
 		this.dao = dao;
 	}
 
-	createTable() {
-		const sql = `
-        CREATE TABLE IF NOT EXISTS speedtest (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        speedResult JSON)`;
-		return this.dao.run(sql);
+	createTable(): void {
+		this.dao.run(`
+			CREATE TABLE IF NOT EXISTS speedtest (
+				id          INTEGER PRIMARY KEY AUTOINCREMENT,
+				speedResult JSON    NOT NULL
+			)
+		`);
 	}
 
-	create(speedResult: string) {
-		return this.dao.run("INSERT INTO speedtest (speedResult) VALUES (?)", [speedResult]);
+	create(speedResult: string): number {
+		const result = this.dao.run("INSERT INTO speedtest (speedResult) VALUES (?)", [speedResult]);
+		return Number(result.lastInsertRowid);
 	}
 
-	getById(id: number) {
-		return this.dao.get(`SELECT * FROM speedtest WHERE id = ?`, [id]);
+	updateIpInfo(id: number, ipInfoJson: string): void {
+		this.dao.run(
+			"UPDATE speedtest SET speedResult = json_set(speedResult, '$.ipInfo', json(?)) WHERE id = ?",
+			[ipInfoJson, id]
+		);
 	}
 
-	getAll() {
-		return this.dao.all(`SELECT * FROM speedtest`);
-	}
-
-	getAllData(): Promise<IResult[]> {
-		return this.dao.all(`
-            select
-                id,
-                "speedResult" -> 'download' ->> 'bandwidth' as "DownloadSpeed",
-                "speedResult" -> 'upload' ->> 'bandwidth' as "UploadSpeed",
-                "speedResult" -> 'ping' ->> 'latency' as "Latency",
-                "speedResult" -> 'ping' ->> 'jitter' as "Jitter",
-                "speedResult" ->> 'updateAt' as "UpdateAt",
-                "speedResult" ->> 'isp' as "ISP",
-                "speedResult" -> 'server' ->> 'name' as "Server",
-                "speedResult" -> 'server' ->> 'location' as "Server City",
-                "speedResult" -> 'server' ->> 'country' as "Server Country",
-                "speedResult" -> 'interface' ->> 'name' as "Network Interface",
-	            "speedResult" -> 'ipInfo' ->> 'ip' as "IP Address",
-                "speedResult" -> 'result' ->> 'url' as "URL"
-            from speedtest
-            order by
-                id desc ;
-        `);
+	getAllData(): ISpeedRecord[] {
+		return this.dao.all<ISpeedRecord>(`
+			SELECT
+				id,
+				speedResult -> 'download'  ->> 'bandwidth'  AS "DownloadSpeed",
+				speedResult -> 'upload'    ->> 'bandwidth'  AS "UploadSpeed",
+				speedResult -> 'ping'      ->> 'latency'    AS "Latency",
+				speedResult -> 'ping'      ->> 'jitter'     AS "Jitter",
+				speedResult               ->> 'updateAt'    AS "UpdateAt",
+				speedResult               ->> 'isp'         AS "ISP",
+				speedResult -> 'server'   ->> 'name'        AS "Server",
+				speedResult -> 'server'   ->> 'location'    AS "Server City",
+				speedResult -> 'server'   ->> 'country'     AS "Server Country",
+				speedResult -> 'interface' ->> 'name'       AS "Network Interface",
+				speedResult -> 'ipInfo'   ->> 'ip'          AS "IP Address",
+				speedResult -> 'result'   ->> 'url'         AS "URL"
+			FROM speedtest
+			ORDER BY id DESC
+		`);
 	}
 }

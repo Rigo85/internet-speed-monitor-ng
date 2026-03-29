@@ -1,54 +1,45 @@
-import { Database } from "sqlite3";
+import Database from "better-sqlite3";
+import * as fs from "fs";
+import * as path from "path";
 
 export class AppDAO {
-	private db: Database;
+	private db: Database.Database;
 
 	constructor(dbFilePath: string) {
-		this.db = new Database(dbFilePath, (err: any) => {
-			if (err) {
-				console.log("Could not connect to database", err);
-			} else {
-				console.log("-------------------------------------------- Connected to database --------------------------------------------");
-			}
-		});
+		fs.mkdirSync(path.dirname(dbFilePath), {recursive: true});
+		this.db = new Database(dbFilePath);
+		this.db.pragma("journal_mode = WAL");
+		console.log("Connected to database:", dbFilePath);
 	}
 
-	run(sql: string, params: any[] = []) {
-		return new Promise((resolve, reject) => {
-			this.db.run(sql, params, function (err: Error | undefined) {
-				if (err) {
-					console.error(`Error running sql: ${sql}. Error: ${err}`);
-					reject(err);
-				} else {
-					resolve({});
-				}
-			});
-		});
+	run(sql: string, params: unknown[] = []): Database.RunResult {
+		try {
+			return this.db.prepare(sql).run(...params);
+		} catch (e) {
+			console.error(`AppDAO.run error — sql: ${sql}`, e);
+			throw e;
+		}
 	}
 
-	get(sql: string, params: any[] = []): Promise<any> {
-		return new Promise((resolve, reject) => {
-			this.db.get(sql, params, (err: Error | undefined, result: any) => {
-				if (err) {
-					console.error(`Error running sql: ${sql}. Error: ${err}`);
-					reject(err);
-				} else {
-					resolve(result);
-				}
-			});
-		});
+	get<T = unknown>(sql: string, params: unknown[] = []): T | undefined {
+		try {
+			return this.db.prepare(sql).get(...params) as T | undefined;
+		} catch (e) {
+			console.error(`AppDAO.get error — sql: ${sql}`, e);
+			throw e;
+		}
 	}
 
-	all(sql: string, params: any[] = []): Promise<any[]> {
-		return new Promise((resolve, reject) => {
-			this.db.all(sql, params, (err, rows) => {
-				if (err) {
-					console.error(`Error running sql: ${sql}. Error: ${err}`);
-					reject(err);
-				} else {
-					resolve(rows);
-				}
-			});
-		});
+	all<T = unknown>(sql: string, params: unknown[] = []): T[] {
+		try {
+			return this.db.prepare(sql).all(...params) as T[];
+		} catch (e) {
+			console.error(`AppDAO.all error — sql: ${sql}`, e);
+			throw e;
+		}
+	}
+
+	close(): void {
+		this.db.close();
 	}
 }

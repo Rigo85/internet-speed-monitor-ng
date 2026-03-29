@@ -1,14 +1,9 @@
 import { ChangeDetectorRef, Component, OnInit } from "@angular/core";
-import { ElectronService, ISpeedUpdate } from "../../services/electron.service";
-import { HistoryComponent } from "../history/history.component";
-
-declare var bootstrap: any;
+import {ElectronService, IMainStatus, ISpeedUpdate} from "../../services/electron.service";
 
 @Component({
 	selector: "app-main",
-	imports: [
-		HistoryComponent
-	],
+	imports: [],
 	templateUrl: "./main.component.html",
 	styleUrl: "./main.component.scss"
 })
@@ -18,8 +13,10 @@ export class MainComponent implements OnInit {
 	uploadSpeed: string = "0";
 	isHistoryButtonDisabled: boolean = false;
 	isSettingsButtonDisabled: boolean = false;
-	ip: string = "<no-ip>";
-	country: string = "<no-country>";
+	ip: string = "Resolving IP...";
+	country: string = "Resolving location...";
+	statusMessage: string = "";
+	statusLevel: "info" | "warn" | "error" = "info";
 
 	constructor(
 		private electronService: ElectronService,
@@ -27,17 +24,23 @@ export class MainComponent implements OnInit {
 	) {}
 
 	ngOnInit() {
-		this.electronService.reload();
 		this.electronService.onSpeedUpdate(this.onSpeedUpdate.bind(this));
 		this.electronService.onToggleButton(this.onButtonToggle.bind(this));
+		this.electronService.onMainStatus(this.onMainStatus.bind(this));
 	}
 
 	onSpeedUpdate(event: any, data: ISpeedUpdate) {
 		this.time = data.time;
 		this.downloadSpeed = data.downloadSpeed;
 		this.uploadSpeed = data.uploadSpeed;
-		this.ip = data.ip || "<no-ip>";
-		this.country = data.country || "<no-country>";
+		this.ip = data.ip;
+		this.country = data.country;
+		this.cdr.detectChanges();
+	}
+
+	onMainStatus(event: any, data: IMainStatus) {
+		this.statusMessage = data.message;
+		this.statusLevel = data.level;
 		this.cdr.detectChanges();
 	}
 
