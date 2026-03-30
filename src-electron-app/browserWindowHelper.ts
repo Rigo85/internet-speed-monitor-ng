@@ -24,7 +24,7 @@ export interface ElectronAppBrowserWindowOptions {
 
 function getIconPath(filename: string): string {
 	if (app.isPackaged) {
-		return path.join(process.resourcesPath, "public", filename);
+		return path.join(process.resourcesPath, filename);
 	}
 	return path.join(process.cwd(), "public", filename);
 }
