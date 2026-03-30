@@ -25,6 +25,7 @@
     "appId": "com.rigoberto.internet-speed-monitor",
     "productName": "Internet Speed Monitor",
     "copyright": "Copyright © 2024 Rigoberto L. Salgado Reyes",
+    "afterPack": "scripts/after-pack.js",
     "asar": true,
     "asarUnpack": [
       "**/node_modules/better-sqlite3/**",
