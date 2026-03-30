@@ -5,6 +5,7 @@ import * as path from "path";
 import {app} from "electron";
 
 const DESKTOP_ID = "internet-speed-monitor";
+const STARTUP_WM_CLASS = "internet-speed-monitor-ng";
 const DESKTOP_FILE = path.join(
 	os.homedir(), ".local", "share", "applications", `${DESKTOP_ID}.desktop`
 );
@@ -45,7 +46,7 @@ export function registerDesktopEntry(): void {
 			"Comment=Monitor your internet speed using the Ookla Speedtest CLI",
 			`Exec=${escapeDesktopExec(exePath)} %U`,
 			`Icon=${ICON_FILE}`,
-			"StartupWMClass=Internet Speed Monitor",
+			`StartupWMClass=${STARTUP_WM_CLASS}`,
 			"Categories=Network;Monitor;",
 			"StartupNotify=true",
 			"Terminal=false",

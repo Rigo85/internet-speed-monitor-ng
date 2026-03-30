@@ -84,7 +84,7 @@
       ],
       "desktop": {
         "entry": {
-          "StartupWMClass": "Internet Speed Monitor"
+          "StartupWMClass": "internet-speed-monitor-ng"
         }
       }
     },
