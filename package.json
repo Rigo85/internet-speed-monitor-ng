@@ -54,10 +54,16 @@
         ]
       },
       {
+        "from": "public/icon.png",
+        "to": "icon.png",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
         "from": "public",
         "to": "public",
         "filter": [
-          "icon.png",
           "icon.ico"
         ]
       }
@@ -82,7 +88,12 @@
       ],
       "icon": "public/icon.png",
       "category": "Network",
-      "synopsis": "Monitor internet speed using the Ookla Speedtest CLI"
+      "synopsis": "Monitor internet speed using the Ookla Speedtest CLI",
+      "desktop": {
+        "entry": {
+          "StartupWMClass": "Internet Speed Monitor"
+        }
+      }
     },
     "win": {
       "target": [
