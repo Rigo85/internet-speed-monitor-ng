@@ -146,7 +146,7 @@
     "@electron/rebuild": "^4.0.3",
     "@types/better-sqlite3": "^7.6.12",
     "@types/jquery": "^3.5.9",
-    "electron": "^35.0.3",
+    "electron": "^41.1.0",
     "electron-builder": "^26.8.1",
     "typescript": "~5.8.2",
     "vitest": "^3.1.1"
