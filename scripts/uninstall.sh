@@ -21,7 +21,7 @@ DESKTOP_ID="internet-speed-monitor"
 APP_DATA_DIR="$HOME/.internet-speed-monitor"
 OOKLA_CONFIG_DIR="$HOME/.config/ookla"
 DESKTOP_FILE="$HOME/.local/share/applications/${DESKTOP_ID}.desktop"
-ICON_FILE="$HOME/.local/share/icons/hicolor/256x256/apps/${DESKTOP_ID}.png"
+ICON_FILE="$HOME/.local/share/icons/hicolor/1024x1024/apps/${DESKTOP_ID}.png"
 
 NON_INTERACTIVE=false
 APPIMAGE_PATH=""

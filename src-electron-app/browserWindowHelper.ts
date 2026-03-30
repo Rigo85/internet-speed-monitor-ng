@@ -26,7 +26,7 @@ function getIconPath(filename: string): string {
 	if (app.isPackaged) {
 		return path.join(process.resourcesPath, filename);
 	}
-	return path.join(process.cwd(), "public", filename);
+	return path.join(app.getAppPath(), "public", filename);
 }
 
 function platformIcon(): string {

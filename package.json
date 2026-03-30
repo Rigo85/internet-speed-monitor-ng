@@ -52,14 +52,6 @@
           "linux/**",
           "win32/**"
         ]
-      },
-      {
-        "from": "public/icon.png",
-        "to": "icon.png"
-      },
-      {
-        "from": "public/icon.ico",
-        "to": "icon.ico"
       }
     ],
     "directories": {
@@ -83,6 +75,12 @@
       "icon": "public/icon.png",
       "category": "Network",
       "synopsis": "Monitor internet speed using the Ookla Speedtest CLI",
+      "extraResources": [
+        {
+          "from": "public/icon.png",
+          "to": "icon.png"
+        }
+      ],
       "desktop": {
         "entry": {
           "StartupWMClass": "Internet Speed Monitor"
@@ -104,7 +102,13 @@
           ]
         }
       ],
-      "icon": "public/icon.ico"
+      "icon": "public/icon.ico",
+      "extraResources": [
+        {
+          "from": "public/icon.ico",
+          "to": "icon.ico"
+        }
+      ]
     },
     "npmRebuild": true
   },
