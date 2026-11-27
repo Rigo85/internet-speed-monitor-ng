@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -25,7 +25,7 @@ jobs:
           node-version: 24
 
       - name: Install dependencies
-        run: npm install --ignore-scripts
+        run: npm ci --ignore-scripts
 
       - name: Run unit tests
         run: npm test
@@ -44,7 +44,7 @@ jobs:
           node-version: 24
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build Angular + Electron
         run: npm run build
@@ -74,7 +74,7 @@ jobs:
           node-version: 24
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build Angular + Electron
         run: npm run build
@@ -93,6 +93,8 @@ jobs:
   # ── 3. Release ────────────────────────────────────────────────────────────
   # Creates the GitHub release only after both builds succeed.
   release:
+    permissions:
+      contents: write
     needs: [build-linux, build-windows]
     runs-on: ubuntu-latest
     steps:

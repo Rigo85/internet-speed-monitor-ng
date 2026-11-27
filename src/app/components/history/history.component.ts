@@ -1,21 +1,20 @@
-import {Component, OnDestroy, OnInit, ViewChild} from "@angular/core";
-import { BrowserModule } from "@angular/platform-browser";
-import { DataTableDirective, DataTablesModule } from "angular-datatables";
-import { Config } from "datatables.net";
-import "datatables.net-buttons-dt";
+import {AfterViewInit, Component, ElementRef, OnDestroy, ViewChild} from "@angular/core";
+import type {Api, Config} from "datatables.net";
+import type DataTableConstructor from "datatables.net";
+
+// Loaded together with its Excel export extension by the angular.json scripts bundle.
+declare const DataTable: typeof DataTableConstructor;
 
 import { ElectronService } from "../../services/electron.service";
 
 @Component({
 	selector: "history",
-	imports: [BrowserModule, DataTablesModule],
 	templateUrl: "./history.component.html",
 	styleUrl: "./history.component.scss"
 })
-export class HistoryComponent implements OnInit, OnDestroy {
-	dtOptions: any;
-	@ViewChild(DataTableDirective, {static: false})
-	dtElement!: DataTableDirective;
+export class HistoryComponent implements AfterViewInit, OnDestroy {
+	@ViewChild("historyTable") tableElement!: ElementRef<HTMLTableElement>;
+	private table?: Api;
 	private readonly onDocumentClick = (event: Event) => {
 		const target = event.target as HTMLElement | null;
 		const resultLink = target?.closest(".result-link") as HTMLElement | null;
@@ -45,13 +44,13 @@ export class HistoryComponent implements OnInit, OnDestroy {
 		return `<a href="#" class="result-link" data-url="${escaped}">Result</a>`;
 	}
 
-	ngOnInit(): void {
+	ngAfterViewInit(): void {
 
 		document.body.style.border = "none";
 		document.body.style.overflow = "auto";
 
-		this.dtOptions = {
-			"bLengthChange": false,
+		this.table = new DataTable(this.tableElement.nativeElement, {
+			lengthChange: false,
 			"pageLength": 10,
 			dom: "Bfrtip",
 			buttons: ["excel"],
@@ -78,20 +77,18 @@ export class HistoryComponent implements OnInit, OnDestroy {
 				}
 			}],
 			order: [[0, "desc"]]
-		} as Config;
+		} as Config);
 
 		document.addEventListener("click", this.onDocumentClick);
 
 		this.electronService.onHistoryData((event, data) => {
-			this.dtElement?.dtInstance.then((dtInstance) => {
-				dtInstance.clear();
-				dtInstance.rows.add(data);
-				dtInstance.draw();
-			});
+			this.table?.clear().rows.add(data).draw();
 		});
 	}
 
 	ngOnDestroy(): void {
+		this.table?.destroy();
+		this.table = undefined;
 		document.removeEventListener("click", this.onDocumentClick);
 	}
 }

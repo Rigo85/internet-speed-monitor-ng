@@ -1,6 +1,6 @@
 {
   "name": "internet-speed-monitor-ng",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Desktop internet speed monitor powered by Ookla Speedtest CLI, built with Electron and Angular",
   "main": "dist-electron-app/src-electron-app/main.js",
   "private": true,
@@ -114,17 +114,14 @@
     "npmRebuild": true
   },
   "dependencies": {
-    "@angular/animations": "^19.2.20",
-    "@angular/common": "^19.2.20",
-    "@angular/compiler": "^19.2.20",
-    "@angular/core": "^19.2.20",
-    "@angular/forms": "^19.2.20",
-    "@angular/platform-browser": "^19.2.20",
-    "@angular/platform-browser-dynamic": "^19.2.20",
-    "@angular/router": "^19.2.20",
-    "angular-datatables": "^19.0.0",
-    "axios": "^1.9.0",
-    "better-sqlite3": "^12.8.0",
+    "@angular/common": "^21.2.26",
+    "@angular/compiler": "^21.2.26",
+    "@angular/core": "^21.2.26",
+    "@angular/forms": "^21.2.26",
+    "@angular/platform-browser": "^21.2.26",
+    "@angular/router": "^21.2.26",
+    "axios": "^1.21.1",
+    "better-sqlite3": "^13.2.0",
     "bootstrap": "^5.3.3",
     "datatables.net": "^2.0.3",
     "datatables.net-bs5": "^2.0.3",
@@ -134,21 +131,25 @@
     "jszip": "^3.10.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
-    "zone.js": "~0.15.0"
+    "zone.js": "~0.16.0",
+    "datatables.net-dt": "^2.0.3"
   },
   "overrides": {
+    "glob@13": "14.0.6",
+    "minimatch@9": "11.0.9",
+    "minimatch@10": "11.0.9",
     "serialize-javascript": ">=7.0.5",
     "tar": ">=7.5.13"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^19.2.23",
-    "@angular/cli": "^19.2.23",
-    "@angular/compiler-cli": "^19.2.20",
+    "@angular/cli": "^21.2.0",
+    "@angular/compiler-cli": "^21.2.26",
     "@types/better-sqlite3": "^7.6.12",
     "@types/jquery": "^3.5.9",
-    "electron": "^41.10.7",
-    "electron-builder": "^26.8.1",
-    "typescript": "~5.8.2",
-    "vitest": "^3.1.1"
+    "electron": "^45.5.0",
+    "electron-builder": "^26.18.0",
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.0",
+    "@angular/build": "^21.2.0"
   }
 }
